@@ -2,18 +2,21 @@
 <?= $this->section('main') ?>
 
 <?php
-helper('form'); // <-- tambahkan ini supaya form_open, form_input, form_password, form_submit tersedia
-
 $username = [
     'name' => 'username',
     'id' => 'username',
-    'class' => 'form-control'
+    'class' => 'form-control',
+    'required' => 'required',
+    'minlength' => '6'
 ];
 
 $password = [
     'name' => 'password',
     'id' => 'password',
-    'class' => 'form-control'
+    'class' => 'form-control',
+    'required' => 'required',
+    'minlength' => '7',
+    'inputmode' => 'numeric'    
 ];
 ?>
 
@@ -50,7 +53,7 @@ $password = [
                     }
                     ?>
                 
-                     <?= form_open('login', 'class = "row g-3 needs-validation"') ?>
+                     <?= form_open('login', 'class="row g-3 needs-validation" novalidate') ?>
 
                 <div class="col-12">
                     <label for="yourUsername" class="form-label">Username</label>
