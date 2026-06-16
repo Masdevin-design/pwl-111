@@ -11,7 +11,7 @@ if(uri_string()!=""){
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-<title> Pejabat Ferarri <?php echo $hlm ?></title>
+<title> TOKO DEVINNN <?php echo $hlm ?></title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -88,6 +88,13 @@ if(uri_string()!=""){
 
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
+  <!-- jQuery -->
+<script src="https://code.jquery.com/jquery-4.0.0.min.js"></script>
+
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+
   <!-- Vendor JS Files (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.0/dist/apexcharts.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -97,6 +104,8 @@ if(uri_string()!=""){
   <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.3.0/dist/simple-datatables.js"></script>
   <script src="https://cdn.tinymce.com/4/tinymce.min.js"></script>
 
+  <?= $this->renderSection('script') ?> 
+  
   <!-- Template Main JS File -->
   <script src="<?php echo base_url('assets/js/main.js'); ?>"></script>
 
