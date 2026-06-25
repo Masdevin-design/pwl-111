@@ -1,116 +1,189 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\Api;
 
-use App\Controllers\BaseController;
 use CodeIgniter\HTTP\ResponseInterface;
+use CodeIgniter\RESTful\ResourceController;
 
 use App\Models\ProductModel;
-use Dompdf\Dompdf;
-
-class ProdukController extends BaseController
+class ProdukController extends ResourceController
 {
-    protected $productModel;
+    protected $model;  
+private $token;
 
-    function __construct()
-    {
-        helper('form');
-        $this->productModel = new ProductModel();
+function __construct()
+{ 
+    $this->model = new ProductModel(); 
+    $this->token = env('MY_API_KEY');
+}protected $model;  
+private $token;
+
+function __construct()
+{ 
+    $this->model = new ProductModel(); 
+    $this->token = env('MY_API_KEY');
+}
+private function authenticate()
+{
+    $header = $this->request->getHeaderLine('Authorization');
+
+    if (empty($header)) {
+        return false;
     }
+
+    if (!preg_match('/Bearer\s+(.*)$/i', $header, $matches)) {
+        return false;
+    }
+
+    return $matches[1] === $this->token;
+}
+
+private function unauthorized()
+{
+    return $this->respond([
+        'status'  => false,
+        'message' => 'Unauthorized'
+    ], 401);
+}
+    /**
+     * Return an array of resource objects, themselves in array format.
+     *
+     * @return ResponseInterface
+     */
     public function index()
-    {
-        return view('produk/index', [
-            'products' => $this->productModel->findAll()
-        ]);
+{
+    if (!$this->authenticate()) {
+        return $this->unauthorized();
     }
+
+    $page = (int) ($this->request->getGet('page') ?? 1);
+    $perPage = (int) ($this->request->getGet('per_page') ?? 10);
+
+    $products = $this->model->paginate($perPage, 'default', $page);
+
+    return $this->respond([
+        'data' => $products,
+        'pagination' => [
+            'current_page' => $page,
+            'per_page'     => $perPage,
+            'last_page'    => $this->model->pager->getPageCount(),
+            'total_data'   => $this->model->pager->getTotal(),
+            'has_next'     => $page < $this->model->pager->getPageCount(),
+            'has_prev'     => $page > 1,
+        ]
+    ]);
+}
+
+}
+    /**
+     * Return the properties of a resource object.
+     *
+     * @param int|string|null $id
+     *
+     * @return ResponseInterface
+     */
+  public function show($id = null)
+{
+    if (!$this->authenticate()) {
+        return $this->unauthorized();
+    }
+
+    $product = $this->model->find($id);
+
+    if (!$product) {
+        return $this->failNotFound('Produk tidak ditemukan');
+    }
+
+    return $this->respond($product);
+} 
+
+    /**
+     * Return a new resource object, with default properties.
+     *
+     * @return ResponseInterface
+     */
+    public function new()
+    {
+        //
+    }
+
+    /**
+     * Create a new resource object, from "posted" parameters.
+     *
+     * @return ResponseInterface
+     */
     public function create()
-    {
-        $dataFoto = $this->request->getFile('foto');
-
-        $dataForm = [
-            'nama' => $this->request->getPost('nama'),
-            'harga' => $this->request->getPost('harga'),
-            'jumlah' => $this->request->getPost('jumlah')
-        ];
-
-        if ($dataFoto->isValid()) {
-            $fileName = $dataFoto->getRandomName();
-            $dataFoto->move('img/', $fileName);
-
-            $dataForm['foto'] = $fileName;
-        }
-
-        $this->productModel->insert($dataForm);
-
-        return redirect('produk')->with('success', 'Data Berhasil Ditambah');
+{
+    if (!$this->authenticate()) {
+        return $this->unauthorized();
     }
 
-    public function edit($id)
+    $data = $this->request->getJSON(true);
+
+    $this->model->insert($data);
+
+    return $this->respondCreated([
+        'message' => 'Produk berhasil ditambahkan'
+    ]);
+}
+
+    /**
+     * Return the editable properties of a resource object.
+     *
+     * @param int|string|null $id
+     *
+     * @return ResponseInterface
+     */
+    public function edit($id = null)
     {
-        $dataProduk = $this->productModel->find($id);
-
-        $dataForm = [
-            'nama' => $this->request->getPost('nama'),
-            'harga' => $this->request->getPost('harga'),
-            'jumlah' => $this->request->getPost('jumlah')
-        ];
-
-        if ($this->request->getPost('check') == 1) {
-            if ($dataProduk['foto'] != '' and file_exists("img/" . $dataProduk['foto'] . "")) {
-                unlink("img/" . $dataProduk['foto']);
-            }
-
-            $dataFoto = $this->request->getFile('foto');
-
-            if ($dataFoto->isValid()) {
-                $fileName = $dataFoto->getRandomName();
-                $dataFoto->move('img/', $fileName);
-
-                $dataForm['foto'] = $fileName;
-            }
-        }
-
-        $this->productModel->update($id, $dataForm);
-
-        return redirect('produk')->with('success', 'Data Berhasil Diubah');
+        //
     }
 
-    public function delete($id)
-    {
-        $dataProduk = $this->productModel->find($id);
-        $this->productModel->delete($id);
-
-        return redirect('produk')->with('success', 'Data Berhasil Dihapus');
+    /**
+     * Add or update a model resource, from "posted" properties.
+     *
+     * @param int|string|null $id
+     *
+     * @return ResponseInterface
+     */
+  public function update($id = null)
+{
+    if (!$this->authenticate()) {
+        return $this->unauthorized();
     }
 
-    public function download()
-    {
-        // Ambil data produk dari database
-        $products = $this->productModel->findAll();
-
-        // Render view menjadi HTML
-        $html = view('produk/download_pdf', [
-            'products' => $products
-        ]);
-
-        // Nama file PDF
-        $filename = date('Y-m-d-H-i-s') . '-produk.pdf';
-
-        // Inisialisasi Dompdf
-        $dompdf = new Dompdf();
-
-        // Load HTML ke Dompdf
-        $dompdf->loadHtml($html);
-
-        // Setting ukuran kertas dan orientasi
-        $dompdf->setPaper('A4', 'portrait');
-
-        // Generate PDF
-        $dompdf->render();
-
-        // Download / tampilkan PDF
-        $dompdf->stream($filename, [
-            'Attachment' => true
-        ]);
+    if (!$this->model->find($id)) {
+        return $this->failNotFound('Produk tidak ditemukan');
     }
+
+    $data = $this->request->getJSON(true);
+
+    $this->model->update($id, $data);
+
+    return $this->respond([
+        'message' => 'Produk berhasil diperbarui'
+    ]);
+}
+    /**
+     * Delete the designated resource object from the model.
+     *
+     * @param int|string|null $id
+     *
+     * @return ResponseInterface
+     */
+   public function delete($id = null)
+{
+    if (!$this->authenticate()) {
+        return $this->unauthorized();
+    }
+
+    if (!$this->model->find($id)) {
+        return $this->failNotFound('Produk tidak ditemukan');
+    }
+
+    $this->model->delete($id);
+
+    return $this->respondDeleted([
+        'message' => 'Produk berhasil dihapus'
+    ]);
 }
