@@ -20,25 +20,35 @@ $routes->group('produk', ['filter' => 'auth'], function ($routes) {
 });
 
 $routes->group('keranjang', ['filter' => 'auth'], function ($routes) {
-    //Rute ini digunakan untuk menampilkan isi keranjang belanja
     $routes->get('', 'TransaksiController::index');
-    //Rute ini digunakan untuk menambah produk ke keranjang belanja
     $routes->post('', 'TransaksiController::cart_add');
-    //Rute ini digunakan untuk mengubah jumlah produk pada keranjang belanja
     $routes->post('edit', 'TransaksiController::cart_edit');
-    //Rute ini digunakan untuk menghapus produk dari keranjang belanja
     $routes->get('delete/(:any)', 'TransaksiController::cart_delete/$1');
-    //Rute ini digunakan untuk mengosongkan keranjang belanja
     $routes->get('clear', 'TransaksiController::cart_clear');
 });
 
 $routes->get('checkout', 'TransaksiController::checkout', ['filter' => 'auth']);
 $routes->post('buy', 'TransaksiController::buy', ['filter' => 'auth']);
 $routes->get('history', 'TransaksiController::history', ['filter' => 'auth']);
+$routes->get('checkout', 'TransaksiController::checkout', ['filter' => 'auth']);
+$routes->post('buy', 'TransaksiController::buy', ['filter' => 'auth']);
+$routes->get('history', 'TransaksiController::history', ['filter' => 'auth']);
+$routes->get('profile', 'AuthController::profile', ['filter' => 'auth']);
 
 $routes->get('ajax/destinations','TransaksiController::destinations', ['filter' => 'auth']);
 $routes->get('ajax/costs','TransaksiController::costs', ['filter' => 'auth']);
 
-$routes->resource('api/products', ['controller' => 'Api\ProdukController']);
+$routes->group('api', function ($routes) {
 
-$routes->get('api/transactions', 'Api\TransaksiController::index');
+    // transaction.rest -> GET /api/transactions
+    $routes->get('transactions', 'TransaksiController::apiIndex');
+
+    // product.rest -> ProdukController
+    $routes->get('products', 'ProdukController::index');
+    $routes->get('products/(:num)', 'ProdukController::show/$1');
+    $routes->post('products', 'ProdukController::create');
+    $routes->put('products/(:num)', 'ProdukController::update/$1');
+    $routes->patch('products/(:num)', 'ProdukController::update/$1');
+    $routes->delete('products/(:num)', 'ProdukController::delete/$1');
+
+});

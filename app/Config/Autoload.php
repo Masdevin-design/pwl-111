@@ -89,9 +89,10 @@ class Autoload extends AutoloadConfig
      *
      * @var list<string>
      */
-    public $helpers = [
-        'url',
-        'form',
-        'number',
-    ];
+  public $helpers = [
+    'url',
+    'form',
+    'number',
+    'transaksi',   // <-- ini sesuai nama file transaksi_helper.php
+];
 }

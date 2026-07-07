@@ -58,6 +58,17 @@ public function login()
     return view('v_login');
 }
 }
+public function profile()
+{
+    return view('v_profile', [
+        'nama'       => session()->get('nama'),
+        'username'   => session()->get('username'),
+        'role'       => session()->get('role'),
+        'email'      => session()->get('email'),
+        'loginTime'  => session()->get('loginTime'),
+        'isLoggedIn' => session()->get('isLoggedIn'),
+    ]);
+}
 public function logout()
 {
     session()->destroy();
